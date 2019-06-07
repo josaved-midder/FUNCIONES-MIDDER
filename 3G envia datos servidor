@@ -1,0 +1,325 @@
+/**
+ * Código: Monicrop GPRS
+ * @author Jose Saavedra <jose.saavedra@midder.co>
+ * 
+ */
+/**
+  * @brief Libreria comunicación serial por Software
+  */
+#include <SoftwareSerial.h>
+/**
+ * @brief Se nombra la variable que hace comunicación serial y inicializacion de sus GPIO del 
+ */
+//SoftwareSerial Serial3G(13, 15); /* Seleccionamos los pines 13 como Rx(D7) y 15 como Tx(D8) */
+SoftwareSerial Serial3G(10, 11); /* arduino Seleccionamos los pines 10 como Rx y 11 como Tx */
+/**
+ * @brief Inicializar varible que controla el arranque del modulo 
+ */
+int PIN_ON_OFF = 9;
+/**
+ * @brief inicializar varias Comando AT
+ */
+int Respuesta;
+char aux_str[50] ;
+char direccion[] = "POST /set_dato/ \r\nHost: agrobot.midder.co\r\nConnection: close\r\n\r\n";
+
+  int Correcto_IP = 0;
+
+/**
+ * @brief Función que envia los comando AT
+ * @param String Comando_AT comando AT a ejecutar 
+ * @param char* Respuesta_Correcta identifica cual es la respuesta correcta que tiene que responder el SIM800L o SIM900
+ * @param unsigned int Tiempo tiempo de espera 
+ * @return Bool Correcto devuelve un valor entre 0 (incorrecto) y 1 (correcto)
+ */
+int Enviar_AT(String Comando_AT, String Respuesta_Correcta_String, unsigned long Tiempo)
+{
+  int x = 0;
+  bool Correcto = 0;
+  char Respuesta[100];
+  unsigned long Tiempo_Anterior;
+  unsigned int Tamano_Respuesta_Correcta_String = Respuesta_Correcta_String.length();
+  char* Respuesta_Correcta;
+  Respuesta_Correcta_String.toCharArray(Respuesta_Correcta, Tamano_Respuesta_Correcta_String);
+  unsigned int Tamano_Respuesta;
+Serial.println("AT");
+  memset(Respuesta, '\0', 100); /** Se inicializa el String */
+  delay(100);
+  while (Serial3G.available() > 0)
+    Serial3G.read();            /** Se limpia el Buffer de entrada*/
+  Serial3G.println(Comando_AT); /** Se envia el comando AT*/
+  x = 0;
+  Tiempo_Anterior = millis();
+  /**
+    * @brief Se espera la respuesta
+    */
+ do
+  {
+    /**
+      * @brief Si hay datos en el buffer de entrada del UART lee y comprueba la respuesta
+      */
+    if (Serial3G.available() != 0)
+    {
+      Respuesta[x] = Serial3G.read();
+      x++;;
+      Serial.print(x); Serial.print("      "); Serial.println(Respuesta[x]);
+      Tamano_Respuesta = sizeof (Respuesta);
+      Serial.print("Jose    ");Serial.println(Tamano_Respuesta);
+      Serial.print("Respuesta   ");Serial.println(Respuesta);
+      /**
+        * @brief Se comprueba si la respuesta es correcta 
+        */
+      if (strstr(Respuesta, "OK") != NULL)
+      {
+        Correcto = 1;
+//      //  Tamano_Respuesta = sizeof (Respuesta);
+//      Serial.print("Josehjfgvfdhjvf");Serial.println(Correcto);
+//      Serial.print("Respuesta final   ");
+//        Serial.println(Respuesta);
+      }
+    }
+  }
+  while ((Correcto == 0) );
+  Serial.println(Respuesta);
+  return Correcto;
+}
+/**
+ * @brief Función de iniciar el modulo
+ */
+void Iniciar()
+{
+  Serial.println("Connectando a la RED .  .. . . . . . . . .");
+  while (Enviar_AT("AT", "OK", 5000) == 0)
+  {
+  }
+  while (Enviar_AT("AT+CREG?", "+CREG: 0,1", 1000) == 0)
+  {
+  }
+ Serial.println("Connectando a internet.  .. . . . . . . . .");
+   Enviar_AT("AT+CGATT=1\r", "OK", 5000); 
+   
+//  Enviar_AT("AT+CGATT=1\r", "OK", 5000);                                             //Iniciamos la conexión GPRS
+//  Enviar_AT("AT+CSTT=\"internet.comcel.com.co\",\"comcel\",\"comcel\"", "OK", 5000); //Definimos el APN, usuario y clave a utilizar
+//  Enviar_AT("AT+CIICR", "OK", 3000);                                                //Activamos el perfil de datos inalámbrico
+//   Serial.println("Conectado a la red.");
+//  Enviar_AT("AT+CIFSR", "", 3000);                                                 //Activamos el perfil de datos inalámbrico
+}
+/*
+ * @brief Funcion que da acceso a internet
+ */
+void Conectar_Internet ()
+{
+ //String Comando_AT_IP = "AT+CIFSR";
+  String Comando_AT_IP = "AT+CSTT=\"internet.comcel.com.co\",\"comcel\",\"comcel\"";
+ String Respuesta_Correcta_String_IP = "ERROR";
+ int x_IP = 0;
+  char Respuesta_IP[100];
+  unsigned long Tiempo_Anterior_IP;
+  unsigned int Tamano_Respuesta_Correcta_String_IP = Respuesta_Correcta_String_IP.length();
+  char* Respuesta_Correcta_IP;
+  Respuesta_Correcta_String_IP.toCharArray(Respuesta_Correcta_IP, Tamano_Respuesta_Correcta_String_IP);
+  //Serial.println("AT");
+  memset(Respuesta_IP, '\0', 100); /** Se inicializa el String */
+  delay(100);
+  while (Serial3G.available() > 0)
+    Serial3G.read();            /** Se limpia el Buffer de entrada*/
+  Serial3G.println(Comando_AT_IP); /** Se envia el comando AT*/
+  x_IP = 0;
+  Tiempo_Anterior_IP = millis();
+  /**
+    * @brief Se espera la respuesta
+    */
+ do
+  {
+    
+    /**
+      * @brief Si hay datos en el buffer de entrada del UART lee y comprueba la respuesta
+      */
+      
+    if (Serial3G.available() != 0)
+    {
+      Respuesta_IP[x_IP] = Serial3G.read();
+      x_IP++;;
+      
+   Serial.print("probqaar    "); Serial.print(x_IP); Serial.print(" correcto   ");Serial.println(Correcto_IP);
+      /**
+        * @brief Se comprueba si la respuesta es correcta 
+        */
+      if (strstr(Respuesta_IP, "ERROR") != NULL)
+      {
+        Correcto_IP = 2;
+      //  Tamano_Respuesta = sizeof (Respuesta_IP);
+      Serial.print("Josehjfgvfdhjvf");Serial.println(Correcto_IP);
+      Serial.print("Respuesta_IP final   ");
+        Serial.println(Respuesta_IP);
+     
+  
+      }
+      if (strstr(Respuesta_IP, "OK") != NULL)
+      {
+        Correcto_IP = 3;
+      //  Tamano_Respuesta = sizeof (Respuesta_IP);
+      Serial.print("Josehjfgvfdhjvf");Serial.println(Correcto_IP);
+      Serial.print("Respuesta_IP final   ");
+        Serial.println(Respuesta_IP);
+     
+  
+      }
+
+    }
+  }
+  while ((Correcto_IP == 0) );
+
+  Serial.print(" correcto  salir ");Serial.println(Correcto_IP);
+  Serial.println(Respuesta_IP);
+  return Correcto_IP;
+ 
+ 
+}
+
+//
+//
+//int Enviar_AT_IP(String Comando_AT_IP, String Respuesta_Correcta_String_IP, unsigned long Tiempo_IP)
+//{
+//  int x_IP = 0;
+//  int Correcto_IP = 0;
+//  char Respuesta_IP[100];
+//  unsigned long Tiempo_Anterior_IP;
+//  unsigned int Tamano_Respuesta_Correcta_String_IP = Respuesta_Correcta_String_IP.length();
+//  char* Respuesta_Correcta_IP;
+//  Respuesta_Correcta_String_IP.toCharArray(Respuesta_Correcta_IP, Tamano_Respuesta_Correcta_String_IP);
+//Serial.println("AT");
+//  memset(Respuesta_IP, '\0', 100); /** Se inicializa el String */
+//  delay(100);
+//  while (Serial3G.available() > 0)
+//    Serial3G.read();            /** Se limpia el Buffer de entrada*/
+//  Serial3G.println(Comando_AT_IP); /** Se envia el comando AT*/
+//  x_IP = 0;
+//  Tiempo_Anterior_IP = millis();
+//  /**
+//    * @brief Se espera la respuesta
+//    */
+// do
+//  {
+//    /**
+//      * @brief Si hay datos en el buffer de entrada del UART lee y comprueba la respuesta
+//      */
+//    if (Serial3G.available() != 0)
+//    {
+//      Respuesta_IP[x_IP] = Serial3G.read();
+//      x_IP++;;
+//      /**
+//        * @brief Se comprueba si la respuesta es correcta 
+//        */
+//      if (strstr(Respuesta_IP, "ERROR") != NULL)
+//      {
+//        Correcto_IP = 2;
+////      //  Tamano_Respuesta = sizeof (Respuesta_IP);
+////      Serial.print("Josehjfgvfdhjvf");Serial.println(Correcto_IP);
+////      Serial.print("Respuesta_IP final   ");
+////        Serial.println(Respuesta_IP);
+//      }
+//    }
+//  }
+//  while ((Correcto_IP == 0) );
+//  Serial.println(Respuesta_IP);
+//  return Correcto_IP;
+//}
+
+/**
+ * 
+ */
+void updateSerial()
+{
+  int x = 0;
+  delay(500);
+  while (Serial.available()) 
+  {
+    Serial3G.write(Serial.read());//Forward what Serial received to Software Serial Port
+  }
+  while(Serial3G.available()) 
+  {
+   
+ Serial.write(Serial3G.read());//Forward what Software Serial received to Serial Port
+   
+  
+    
+    
+  }
+}
+
+
+/** 
+ * @brief Función que se solo se ejecuta una vez, después de cada encendido o reinicio de la placa 
+ * 
+ */
+void setup()
+{
+  Serial3G.begin(9600); //Configura velocidad del puerto serie para el SIM900
+  Serial.begin(9600);   //Configura velocidad del puerto serie del Arduino
+  Serial.println("Iniciando...");
+ Iniciar();
+  Serial.println("FIn.. . .. . . . . . . . Iniciar ");
+Conectar_Internet () ;
+//  if (Correcto_IP == 3)
+// {
+//  Serial3G.read();            /** Se limpia el Buffer de entrada*/
+//  Serial3G.println( "AT+CIICR"); /** Se envia el comando AT*/
+//  updateSerial();
+//  delay(500);
+//  }
+   Serial.println("FIn.. . .. . . . . . . . Conectar_Internet ");
+
+  Serial3G.read();            /** Se limpia el Buffer de entrada*/
+  Serial3G.println( "AT+CIICR"); /** Se envia el comando AT*/
+  updateSerial();
+  delay(500);
+  Serial3G.println( "AT+CIFSR" ); /** Se envia el comando AT*/
+  updateSerial();
+  delay(500);
+  Serial3G.println("AT+CIPSTART=\"TCP\",\"agrobot.midder.co\",\"80\"");
+  updateSerial();
+  delay(5000);
+  Serial3G.println("AT+CIPSEND");
+  updateSerial();
+  delay(2000);
+ Serial3G.print("GET http://agrobot.midder.co/set_dato/");Serial3G.print("JDIAz");Serial3G.print("JDIAz");Serial3G.print("JDIAz");Serial3G.println("653");
+  updateSerial();
+  delay(500);
+  Serial3G.write(26);
+  updateSerial();
+  delay(500);
+  Serial3G.println("AT+CIPCLOSE");
+  delay(500);
+  Serial.println("AT+CIPSHUT"); 
+  
+
+  
+ 
+}
+/**
+ * Función de arranque o principal
+ * @return void 
+ */
+void loop()
+{
+  /**
+  if (Serial.available())
+    switch (Serial.read())
+    {
+    case 'h':
+      PeticionHttp();
+      break;
+    case 'q':
+      // Closes the socket
+      Enviar_AT("AT+CIPCLOSE", "CLOSE OK", 10000); //Cerramos la conexion
+      Enviar_AT("AT+CIPSHUT", "OK", 10000);        //Cierra el contexto PDP del GPRS
+      delay(10000);
+      break;
+    }
+  if (Serial3G.available())
+  {
+    Serial.write(Serial3G.read());
+  }*/
+  
+}
