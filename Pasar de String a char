@@ -1,0 +1,11 @@
+
+String Respuesta_Correcta_String= "OK";
+unsigned int Tamano_Respuesta_Correcta_String = Respuesta_Correcta_String.length();
+char* Respuesta_Correcta;
+void setup ()
+{
+Respuesta_Correcta_String.toCharArray(Respuesta_Correcta, Tamano_Respuesta_Correcta_String);
+}
+void loop ()
+{
+}
