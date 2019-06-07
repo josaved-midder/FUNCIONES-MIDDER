@@ -1,0 +1,79 @@
+#include <SoftwareSerial.h>
+
+//SoftwareSerial mySerial(10, 11); // RX, TX
+SoftwareSerial Serial3G(10, 11); // RX, TX
+
+
+String Comando_AT = "AT";
+String Respuesta_Correcta_String= "OK";
+unsigned int Tamano_Respuesta_Correcta_String = Respuesta_Correcta_String.length();
+unsigned int Tamano_Respuesta;
+char* Respuesta_Correcta;
+unsigned long Tiempo;
+  int x = 0;
+  bool Correcto = 0;
+  char Respuesta[100];
+  unsigned long Tiempo_Anterior;
+  String Respuesta_String;
+
+void setup(){ 
+
+   Serial.begin(9600);
+   Serial3G.begin(9600);
+   Respuesta_Correcta_String.toCharArray(Respuesta_Correcta, Tamano_Respuesta_Correcta_String);
+
+   Serial.println("AT");
+     memset(Respuesta, '\0', 100); /** Se inicializa el String */
+  delay(100);
+    while (Serial3G.available() > 0)
+    Serial3G.read();            /** Se limpia el Buffer de entrada*/
+  Serial3G.println(Comando_AT); /** Se envia el comando AT*/
+  x = 0;
+  Tiempo_Anterior = millis();
+  do
+  {
+    /**
+      * @brief Si hay datos en el buffer de entrada del UART lee y comprueba la respuesta
+      */
+    if (Serial3G.available() != 0)
+    {
+      Respuesta[x] = Serial3G.read();
+     Serial.print(x); Serial.print("      "); Serial.println(Respuesta[x]);
+      x++;
+      Tamano_Respuesta = sizeof (Respuesta);
+      Serial.print("Jose    ");Serial.println(Tamano_Respuesta);
+      Serial.print("Respuesta   ");Serial.println(Respuesta);
+      /**
+        * @brief Se comprueba si la respuesta es correcta 
+        */
+      if (strstr(Respuesta, "OK") != NULL)
+      {
+        Correcto = 1;
+        Tamano_Respuesta = sizeof (Respuesta);
+        Serial.println("Josehjfgvfdhjvf");
+        Serial.print("Respuesta final   ");Serial.println(Respuesta);
+      }
+    }
+   // Serial.print("Corresto   ");Serial.println(Correcto);
+  }
+  while ((Correcto == 0) );
+ Tamano_Respuesta = sizeof (Respuesta);
+//  for (int T = 0; T< Tamano_Respuesta; T++)
+//  {
+//  Serial.println(Respuesta [T]);
+//  }
+  //Serial.print("X   ");Serial.println(x);
+//  while ((Correcto == 0) && ((millis() - Tiempo_Anterior) < Tiempo));
+
+ // Serial.println(Respuesta_String);
+  
+   
+}
+
+void loop ()
+{
+  
+}
+
+
+
